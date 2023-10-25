@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { axiosClient } from '../../hooks/axiosClient';
 import Modal from 'react-modal';
 import { Box, Button, TextField, Typography, Backdrop, CircularProgress, Switch } from '@mui/material';
@@ -53,14 +54,16 @@ export default function Map() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isOpen, setIsOpen] = useState<boolean>(true);
-  
-  // const [position, setPosition] = useState<Position>(location.state ? JSON.parse(location.state.position) :
-  const [position, setPosition] = useState<Position>({
-    lat: 35.13267449594266,
-    lng: 137.11121003745856,
-  });
+  const searchParams = useSearchParams();
+  let initLat: string | null = searchParams.get('lat');
+  let initLng: string | null = searchParams.get('lng');
+
+  // const [position, setPosition] = useState<Position>({
+  const [position, setPosition] = useState<Position>((initLat && initLng ) ? 
+    {lat: parseFloat(initLat), lng: parseFloat(initLng)} :
+    {lat: 35.13267449594266, lng: 137.11121003745856,}
+  );
   const [address, setAddress] = useState<string>("")
-  // const [initState, setInitState] = useState(location.state ? false : true);
 
   //住所検索
   const onSearch = async () => {
@@ -103,6 +106,7 @@ export default function Map() {
   const onSelectedSpot = ({id}: SpotId) => {
     setSelectedSpot(spots.find(spot => spot.id == id));
     setIsModalOpen(true);
+    history.replaceState('','',`view?lat=${position.lat}&lng=${position.lng}`)
   }
 
   const closeModal = () => {
@@ -176,7 +180,7 @@ export default function Map() {
                   )
                 })
               :
-              <></>
+                null
             }
           </LayerGroup>
         </LayeredMap>
